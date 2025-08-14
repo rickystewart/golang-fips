@@ -1,0 +1,39 @@
+diff --git a/src/crypto/tls/handshake_server_tls13.go b/src/crypto/tls/handshake_server_tls13.go
+index e84b583733..535c1ff518 100644
+--- a/src/crypto/tls/handshake_server_tls13.go
++++ b/src/crypto/tls/handshake_server_tls13.go
+@@ -12,6 +12,7 @@ import (
+ 	"crypto/internal/mlkem768"
+ 	"crypto/rsa"
+ 	"errors"
++	"fmt"
+ 	"hash"
+ 	"internal/byteorder"
+ 	"io"
+@@ -651,11 +652,14 @@ func (hs *serverHandshakeStateTLS13) sendServerParameters() error {
+ 	if earlySecret == nil {
+ 		earlySecret = hs.suite.extract(nil, nil)
+ 	}
++	fmt.Printf("earlySecret = %s\n", earlySecret)
+ 	hs.handshakeSecret = hs.suite.extract(hs.sharedKey,
+ 		hs.suite.deriveSecret(earlySecret, "derived", nil))
++	fmt.Printf("handshakeSecret = %s\n", hs.handshakeSecret)
+ 
+ 	clientSecret := hs.suite.deriveSecret(hs.handshakeSecret,
+ 		clientHandshakeTrafficLabel, hs.transcript)
++	fmt.Printf("clientSecret = %s\n", clientSecret)
+ 	c.in.setTrafficSecret(hs.suite, QUICEncryptionLevelHandshake, clientSecret)
+ 	serverSecret := hs.suite.deriveSecret(hs.handshakeSecret,
+ 		serverHandshakeTrafficLabel, hs.transcript)
+diff --git a/src/crypto/tls/key_schedule.go b/src/crypto/tls/key_schedule.go
+index 19ab3d255f..ada6ea3d71 100644
+--- a/src/crypto/tls/key_schedule.go
++++ b/src/crypto/tls/key_schedule.go
+@@ -62,6 +62,7 @@ func (c *cipherSuiteTLS13) expandLabel(secret []byte, label string, context []by
+ 		panic(fmt.Errorf("failed to construct HKDF label: %s", err))
+ 	}
+ 	out := make([]byte, length)
++	fmt.Printf("hkdf.Expand: %s, %s\n", secret, string(hkdfLabelBytes))
+ 	if boring.Enabled() {
+ 		reader, err := boring.ExpandHKDF(c.hash.New, secret, hkdfLabelBytes)
+ 		if err != nil {
